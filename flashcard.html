@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsible AI Flashcards</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        .header h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .header p {
+            font-size: 18px;
+            opacity: 0.95;
+        }
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        .stat-box {
+            background: white;
+            padding: 15px 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .stat-box span {
+            display: block;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .stat-box strong {
+            font-size: 28px;
+            color: #667eea;
+        }
+        .card-container {
+            perspective: 1000px;
+            margin-bottom: 30px;
+        }
+        .flashcard {
+            width: 100%;
+            min-height: 400px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            cursor: pointer;
+        }
+        .flashcard.flipped {
+            transform: rotateY(180deg);
+        }
+        .card-face {
+            position: absolute;
+            width: 100%;
+            min-height: 400px;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .card-front {
+            background: white;
+        }
+        .card-back {
+            background: linear-gradient(135deg, #4a5fd9 0%, #5a2d82 100%);
+            color: white;
+            transform: rotateY(180deg);
+        }
+        .card-type {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #667eea;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .card-back .card-type {
+            background: rgba(255,255,255,0.2);
+        }
+        .question {
+            font-size: 28px;
+            color: #2c3e50;
+            font-weight: 600;
+            line-height: 1.4;
+            margin-bottom: 20px;
+        }
+        .hint {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            margin-top: 20px;
+            font-size: 16px;
+            color: #555;
+        }
+        .hint strong {
+            color: #667eea;
+        }
+        .answer {
+            font-size: 20px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        .answer h3 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+            padding-bottom: 10px;
+        }
+        .answer ul {
+            margin-left: 25px;
+            margin-top: 10px;
+        }
+        .answer li {
+            margin: 8px 0;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+        button {
+            padding: 15px 35px;
+            font-size: 16px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .btn-flip {
+            background: white;
+            color: #667eea;
+        }
+        .btn-flip:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        .btn-prev {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-next {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-prev:hover, .btn-next:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 10px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: white;
+            border-radius: 10px;
+            transition: width 0.3s;
+        }
+        .category-badge {
+            display: inline-block;
+            background: #ffc107;
+            color: #000;
+            padding: 6px 14px;
+            border-radius: 15px;
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .difficulty {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .difficulty.easy { background: #d4edda; color: #155724; }
+        .difficulty.medium { background: #fff3cd; color: #856404; }
+        .difficulty.hard { background: #f8d7da; color: #721c24; }
+        .shuffle-btn {
+            background: #28a745;
+            color: white;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Responsible AI in Governance</h1>
+            <p>Knowledge Assessment Flashcards</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat-box">
+                <span>Card</span>
+                <strong id="currentCard">1</strong> / <strong id="totalCards">20</strong>
+            </div>
+            <div class="stat-box">
+                <span>Progress</span>
+                <strong id="progress">0%</strong>
+            </div>
+            <div class="stat-box">
+                <span>Category</span>
+                <strong id="category">Data Quality</strong>
+            </div>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressBar"></div>
+        </div>
+
+        <div class="card-container">
+            <div class="flashcard" id="flashcard" onclick="flip()">
+                <div class="card-face card-front">
+                    <span class="difficulty" id="difficulty">Medium</span>
+                    <span class="card-type">Question</span>
+                    <div class="category-badge" id="categoryBadge">Data Quality</div>
+                    <div class="question" id="question">Loading...</div>
+                    <div class="hint" id="hint"></div>
+                </div>
+                <div class="card-face card-back">
+                    <span class="card-type">Answer</span>
+                    <div class="answer" id="answer">Loading...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-prev" onclick="prevCard()" id="prevBtn">← Previous</button>
+            <button class="btn-flip" onclick="flip()">🔄 Flip Card</button>
+            <button class="btn-next" onclick="nextCard()" id="nextBtn">Next →</button>
+            <button class="shuffle-btn" onclick="shuffleCards()">🔀 Shuffle</button>
+        </div>
+    </div>
+
+    <script>
+        const flashcards = [
+            {
+                category: "Data Quality",
+                difficulty: "medium",
+                question: "What are the main data quality challenges that affect AI systems in Indian governance?",
+                hint: "Think about how data is collected, stored, and shared across different government departments.",
+                answer: "<h3>Key Data Quality Challenges:</h3><ul><li><strong>Fragmentation:</strong> Data scattered across departments and states with no interoperability</li><li><strong>Inconsistency:</strong> Missing values, outdated records, and conflicting information</li><li><strong>Lack of Standards:</strong> No unified data collection protocols</li><li><strong>Rural Digital Gap:</strong> Limited digitization in remote areas creating representation bias</li></ul><p><strong>Impact:</strong> Biased AI outcomes that systematically exclude marginalized communities already underrepresented in datasets.</p>"
+            },
+            {
+                category: "Algorithmic Bias",
+                difficulty: "hard",
+                question: "Why is algorithmic bias particularly problematic in the Indian context, and what are its sources?",
+                hint: "Consider India's diversity in terms of caste, religion, gender, region, and language.",
+                answer: "<h3>Sources of Algorithmic Bias:</h3><ul><li><strong>Historical Discrimination:</strong> Training data reflects past inequities</li><li><strong>Caste Bias:</strong> Systems may encode caste-based discrimination</li><li><strong>Gender Bias:</strong> Underrepresentation of women in datasets</li><li><strong>Regional Bias:</strong> Urban-centric data excludes rural populations</li><li><strong>Lack of Diversity:</strong> Homogeneous AI development teams</li></ul><p><strong>Why Critical:</strong> India's constitutional guarantee of equality means AI that reinforces discrimination violates fundamental rights at an unprecedented scale.</p>"
+            },
+            {
+                category: "Technical Capacity",
+                difficulty: "easy",
+                question: "What is the primary technical capacity challenge facing government departments implementing AI?",
+                hint: "Think about who has the expertise to understand and oversee AI systems.",
+                answer: "<h3>Primary Challenge:</h3><p><strong>Shortage of AI Specialists in Government</strong></p><ul><li>Limited understanding of AI among decision-makers</li><li>Inadequate training programs for existing staff</li><li>Brain drain to private sector with better pay</li><li>Over-reliance on external vendors without oversight capability</li></ul><p><strong>Critical Impact:</strong> Officers cannot recognize when AI produces biased or incorrect outputs, leading to uncritical acceptance of algorithmic decisions that may harm citizens.</p>"
+            },
+            {
+                category: "Regulatory Framework",
+                difficulty: "medium",
+                question: "What is the current state of AI regulation in India, and what are the key gaps?",
+                hint: "Consider what happens when AI causes harm to citizens.",
+                answer: "<h3>Current State:</h3><p><strong>No Comprehensive AI Legislation</strong> - Digital India Act still in development</p><h3>Key Gaps:</h3><ul><li><strong>Liability:</strong> Unclear who is responsible when AI causes harm</li><li><strong>Outdated Laws:</strong> Existing laws not designed for algorithmic decisions</li><li><strong>Data Rights:</strong> Lack of clarity on ownership and usage</li><li><strong>Enforcement:</strong> Limited mechanisms to address violations</li></ul><p><strong>Example:</strong> If AI wrongly denies benefits, is it the developer's fault? The department's? The vendor's? No clear answer exists.</p>"
+            },
+            {
+                category: "Transparency",
+                difficulty: "hard",
+                question: "Why is the 'black box' problem of AI particularly concerning for democratic governance?",
+                hint: "Think about citizens' rights to understand and challenge government decisions.",
+                answer: "<h3>The Black Box Problem:</h3><p>Many AI systems make decisions without explaining how or why, creating serious governance issues:</p><ul><li><strong>Unexplainable Decisions:</strong> Citizens can't understand why they were denied services</li><li><strong>No Challenge Mechanism:</strong> Can't appeal what you don't understand</li><li><strong>Proprietary Algorithms:</strong> Vendors protect methods as trade secrets</li><li><strong>Technical Complexity:</strong> Explanations too complex for average citizens</li></ul><p><strong>Democratic Impact:</strong> Undermines accountability - a fundamental principle of democracy is that citizens can question government actions.</p>"
+            },
+            {
+                category: "Privacy",
+                difficulty: "medium",
+                question: "What privacy risks emerge from integrating multiple government databases for AI analytics?",
+                hint: "Consider Aadhaar, PAN, health records, and driving licenses all linked together.",
+                answer: "<h3>Privacy Risks from Database Integration:</h3><ul><li><strong>Function Creep:</strong> Data collected for one purpose used for another without consent</li><li><strong>Unauthorized Profiling:</strong> Combining databases creates comprehensive citizen profiles</li><li><strong>Single Point of Failure:</strong> Centralized data increases breach impact</li><li><strong>Surveillance Risk:</strong> Potential for mass monitoring without safeguards</li><li><strong>Lack of Consent:</strong> Citizens often unaware of data sharing</li></ul><p><strong>Example:</strong> Aadhaar + PAN + health records + licenses could reveal intimate details about citizens' lives beyond original collection purpose.</p>"
+            },
+            {
+                category: "Digital Divide",
+                difficulty: "easy",
+                question: "How many Indian citizens currently lack internet access, and why does this matter for AI governance?",
+                hint: "Think about the split between connected and excluded populations.",
+                answer: "<h3>Digital Divide Statistics:</h3><p><strong>600 Million Indians</strong> lack internet access (out of 1.4 billion)</p><p>That means: <strong>800 Million Connected | 600 Million Excluded</strong></p><h3>Why This Matters:</h3><ul><li>AI-powered services assume universal digital access</li><li>Elderly and marginalized populations face exclusion</li><li>Language barriers (most systems in English/Hindi only)</li><li>Lack of accessibility for persons with disabilities</li></ul><p><strong>Impact:</strong> AI governance risks becoming governance only for the digitally privileged, violating inclusive governance principles.</p>"
+            },
+            {
+                category: "Accountability",
+                difficulty: "hard",
+                question: "What accountability challenges arise when AI systems make errors in government services?",
+                hint: "Think about who citizens can complain to and how they prove algorithmic discrimination.",
+                answer: "<h3>Accountability Challenges:</h3><ul><li><strong>Unclear Responsibility:</strong> Is it the developer, department, or vendor?</li><li><strong>No AI-Specific Grievance Systems:</strong> Existing mechanisms not designed for algorithms</li><li><strong>Difficulty Proving Bias:</strong> How do citizens demonstrate algorithmic discrimination?</li><li><strong>No AI Ombudsman:</strong> Lack of specialized oversight authority</li><li><strong>Rights Awareness Gap:</strong> Citizens don't know they can challenge automated decisions</li></ul><p><strong>Real Scenario:</strong> Elderly person wrongly denied pension by AI - who do they complain to? How do they prove the system erred? Current systems provide no clear path.</p>"
+            },
+            {
+                category: "Case Study",
+                difficulty: "medium",
+                question: "In the facial recognition case study, what were the main challenges encountered by the police department?",
+                hint: "Think about accuracy, privacy, legal frameworks, and accountability.",
+                answer: "<h3>Facial Recognition Challenges:</h3><ul><li><strong>Bias:</strong> Higher false positive rates for tribal populations and certain communities</li><li><strong>Privacy Invasion:</strong> Mass surveillance without citizen consent or awareness</li><li><strong>Legal Vacuum:</strong> No framework for admissibility in court</li><li><strong>Lack of Transparency:</strong> No explanation of match confidence or methodology</li><li><strong>Accountability Gap:</strong> Unclear liability for wrongful identification</li></ul><p><strong>Key Question:</strong> How do we balance legitimate security needs with fundamental privacy rights and protection against discrimination?</p>"
+            },
+            {
+                category: "Case Study",
+                difficulty: "medium",
+                question: "What went wrong with the AI welfare scheme targeting system, and who was most affected?",
+                hint: "Consider who might not appear in official government databases.",
+                answer: "<h3>Welfare Scheme Targeting Failures:</h3><ul><li><strong>Excluded Migrants:</strong> Seasonal workers without fixed addresses not in training data</li><li><strong>Regional Inequality:</strong> System favored areas with better digital record-keeping</li><li><strong>No Explanations:</strong> Denied beneficiaries received no reasons</li><li><strong>No Appeals:</strong> Affected persons had no effective redressal mechanism</li><li><strong>Digital Barrier:</strong> Smartphone requirement excluded eligible workers</li></ul><p><strong>Most Affected:</strong> Most vulnerable populations - informal workers, migrants, and rural poor - precisely those the welfare scheme was meant to help!</p>"
+            },
+            {
+                category: "Implementation",
+                difficulty: "easy",
+                question: "What does the FATE framework stand for in Responsible AI?",
+                hint: "Four key principles that should guide AI deployment in governance.",
+                answer: "<h3>FATE Framework:</h3><ul><li><strong>F - Fairness:</strong> Equitable treatment across all demographics (caste, religion, gender, region)</li><li><strong>A - Accountability:</strong> Clear lines of responsibility when systems fail or cause harm</li><li><strong>T - Transparency:</strong> Explainable decisions and open processes citizens can understand</li><li><strong>E - Ethics:</strong> Human rights and constitutional values at the center of design</li></ul><h3>Additional Essentials:</h3><ul><li>Privacy by design</li><li>Inclusive and accessible</li><li>Human oversight for critical decisions</li></ul>"
+            },
+            {
+                category: "Implementation",
+                difficulty: "hard",
+                question: "What institutional mechanisms should be established before deploying AI in governance?",
+                hint: "Think about oversight, review, and accountability structures.",
+                answer: "<h3>Essential Institutional Mechanisms:</h3><ul><li><strong>Ethics Review Boards:</strong> In every ministry for mandatory pre-deployment review with diverse stakeholders</li><li><strong>AI Governance Cells:</strong> Dedicated technical expertise for in-house capabilities and vendor oversight</li><li><strong>Impact Assessments:</strong> Mandatory algorithmic impact, bias, and privacy assessments</li><li><strong>Independent Oversight:</strong> AI ombudsman with power to investigate complaints and enforce standards</li></ul><p><strong>Critical:</strong> These must be in place BEFORE deployment, not added after problems emerge.</p>"
+            },
+            {
+                category: "Policy",
+                difficulty: "medium",
+                question: "Why is building in-house AI capacity more important than relying on vendors?",
+                hint: "Consider who understands the systems and can protect citizen rights.",
+                answer: "<h3>Importance of In-House Capacity:</h3><ul><li><strong>Oversight Capability:</strong> Can't effectively govern what you don't understand</li><li><strong>Vendor Lock-in Risk:</strong> Over-reliance creates dependency and loss of control</li><li><strong>Rights Protection:</strong> Government must be able to verify AI isn't violating citizen rights</li><li><strong>Long-term Sustainability:</strong> Can't outsource core governance functions indefinitely</li><li><strong>Quality Control:</strong> Need expertise to recognize biased or incorrect outputs</li></ul><p><strong>Bottom Line:</strong> Without in-house technical expertise, governments cannot effectively govern AI systems or protect citizen rights - it's not optional.</p>"
+            },
+            {
+                category: "Data Quality",
+                difficulty: "easy",
+                question: "What happens when AI is trained on incomplete or biased data from government databases?",
+                hint: "Garbage in, garbage out - but at massive scale.",
+                answer: "<h3>Impact of Poor Quality Data:</h3><ul><li><strong>Systematic Exclusion:</strong> Groups not in data get systematically denied services</li><li><strong>Amplified Discrimination:</strong> Historical biases encoded at scale</li><li><strong>Wrong Decisions:</strong> Incorrect/outdated data leads to wrong outcomes</li><li><strong>Feedback Loops:</strong> Bad decisions create worse data, reinforcing problems</li></ul><p><strong>Example:</strong> If rural districts have incomplete records, welfare algorithms trained on this data will systematically exclude rural beneficiaries - the very people who most need help.</p><p><strong>Key Principle:</strong> You cannot fix algorithmic bias with better algorithms if the underlying data is biased.</p>"
+            },
+            {
+                category: "Ethics",
+                difficulty: "hard",
+                question: "Why can't efficiency gains from AI come at the cost of fundamental rights?",
+                hint: "Consider the role of government in a constitutional democracy.",
+                answer: "<h3>Rights vs. Efficiency Trade-off:</h3><p><strong>Core Principle:</strong> In a constitutional democracy, fundamental rights are non-negotiable - they can't be 'optimized away' for efficiency.</p><h3>Why This Matters:</h3><ul><li><strong>Constitutional Mandate:</strong> Government exists to protect rights, not just deliver services efficiently</li><li><strong>Human Dignity:</strong> Every citizen has inherent worth beyond algorithmic calculations</li><li><strong>Precedent Risk:</strong> Accepting rights violations for efficiency sets dangerous precedent</li><li><strong>Trust Erosion:</strong> Citizens lose faith in systems that sacrifice their rights</li></ul><p><strong>The Test:</strong> If an AI system saves money but violates equality or privacy, it fails - regardless of efficiency gains.</p>"
+            },
+            {
+                category: "Privacy",
+                difficulty: "medium",
+                question: "What is 'function creep' in the context of government AI systems?",
+                hint: "Think about data collected for one purpose being used for something else.",
+                answer: "<h3>Function Creep Explained:</h3><p><strong>Definition:</strong> When data collected for one specific purpose is later used for different purposes without explicit consent.</p><h3>Examples in Governance:</h3><ul><li>Aadhaar data collected for welfare distribution used for surveillance</li><li>Health records collected for treatment used for employment screening</li><li>Tax data used for criminal investigations beyond original scope</li></ul><h3>Why It's Dangerous:</h3><ul><li>Violates original consent and trust</li><li>Citizens can't make informed decisions about data sharing</li><li>Creates surveillance infrastructure without democratic debate</li><li>No limits on government data use once collected</li></ul>"
+            },
+            {
+                category: "Transparency",
+                difficulty: "easy",
+                question: "What right should citizens have when AI makes decisions about their government benefits or services?",
+                hint: "Think about what you'd want to know if a system denied you something.",
+                answer: "<h3>Essential Citizen Rights:</h3><ul><li><strong>Right to Explanation:</strong> Understand why a decision was made</li><li><strong>Right to Appeal:</strong> Challenge automated decisions with human review</li><li><strong>Right to Know:</strong> Be informed when AI is making decisions about them</li><li><strong>Right to Correct:</strong> Fix errors in data used for decisions</li><li><strong>Right to Opt-Out:</strong> Request human decision-making for critical matters</li></ul><p><strong>Example:</strong> If AI denies your loan application, you should know: (1) That AI made the decision, (2) Why you were denied, (3) How to appeal to a human, (4) How to correct any wrong information.</p>"
+            },
+            {
+                category: "Implementation",
+                difficulty: "medium",
+                question: "What should be assessed BEFORE deploying an AI system in government?",
+                hint: "Think about potential harms, biases, and impacts on different groups.",
+                answer: "<h3>Pre-Deployment Assessments Required:</h3><ul><li><strong>Algorithmic Impact Assessment:</strong> How will this affect different communities?</li><li><strong>Bias Testing:</strong> Does the system discriminate against any groups?</li><li><strong>Privacy Impact Assessment:</strong> What data is collected and how is it protected?</li><li><strong>Fairness Evaluation:</strong> Are outcomes equitable across demographics?</li><li><strong>Security Audit:</strong> Is the system protected from manipulation?</li><li><strong>Accessibility Check:</strong> Can all citizens interact with this system?</li></ul><p><strong>Critical:</strong> These assessments must happen BEFORE deployment, with results publicly reported and systems adjusted accordingly.</p>"
+            },
+            {
+                category: "Policy",
+                difficulty: "hard",
+                question: "What is the relationship between AI governance capacity and citizen rights protection?",
+                hint: "Consider what happens when officials don't understand the AI systems they're using.",
+                answer: "<h3>Capacity-Rights Connection:</h3><p><strong>Core Relationship:</strong> Without technical capacity to govern AI, protecting citizen rights becomes impossible.</p><h3>How Capacity Protects Rights:</h3><ul><li><strong>Recognition:</strong> Officers can identify when systems produce biased outputs</li><li><strong>Questioning:</strong> Can challenge vendor claims and algorithmic decisions</li><li><strong>Oversight:</strong> Can monitor systems for discrimination and errors</li><li><strong>Intervention:</strong> Can stop harmful systems before widespread damage</li><li><strong>Accountability:</strong> Can hold vendors and developers responsible</li></ul><p><strong>Danger:</strong> When officials blindly trust AI they don't understand, citizens have no protection - the system becomes accountable to no one.</p>"
+            },
+            {
+                category: "Ethics",
+                difficulty: "medium",
+                question: "Why is India's diversity both a challenge and an opportunity for Responsible AI?",
+                hint: "Think about 1.4 billion people across 22 languages, multiple religions, castes, and regions.",
+                answer: "<h3>Diversity as Challenge:</h3><ul><li>Defining 'fairness' across vastly different contexts is complex</li><li>One-size-fits-all solutions won't work</li><li>Higher risk of algorithmic bias affecting vulnerable groups</li><li>Language and cultural barriers to AI access</li></ul><h3>Diversity as Opportunity:</h3><ul><li>Forces more thoughtful, inclusive AI design from the start</li><li>Creates expertise in handling complex, diverse populations</li><li>Can set global standards for AI in diverse democracies</li><li>Constitutional commitment to equality provides strong foundation</li></ul><p><strong>Key Insight:</strong> If India can do Responsible AI right, it becomes a model for other large, diverse democracies.</p>"
+            }
+        ];
+
+        let currentIndex = 0;
+        let isFlipped = false;
+        let viewedCards = new Set();
+
+        function updateCard() {
+            const card = flashcards[currentIndex];
+            const flashcard = document.getElementById('flashcard');
+            
+            if (isFlipped) {
+                flip();
+            }
+
+            document.getElementById('question').textContent = card.question;
+            document.getElementById('hint').innerHTML = '<strong>💡 Hint:</strong> ' + card.hint;
+            document.getElementById('answer').innerHTML = card.answer;
+            document.getElementById('category').textContent = card.category;
+            document.getElementById('categoryBadge').textContent = card.category;
+            document.getElementById('difficulty').textContent = card.difficulty.charAt(0).toUpperCase() + card.difficulty.slice(1);
+            document.getElementById('difficulty').className = 'difficulty ' + card.difficulty;
+            
+            document.getElementById('currentCard').textContent = currentIndex + 1;
+            document.getElementById('totalCards').textContent = flashcards.length;
+            
+            viewedCards.add(currentIndex);
+            const progress = Math.round((viewedCards.size / flashcards.length) * 100);
+            document.getElementById('progress').textContent = progress + '%';
+            document.getElementById('progressBar').style.width = progress + '%';
+
+            document.getElementById('prevBtn').disabled = currentIndex === 0;
+            document.getElementById('nextBtn').disabled = currentIndex === flashcards.length - 1;
+        }
+
+        function flip() {
+            const flashcard = document.getElementById('flashcard');
+            flashcard.classList.toggle('flipped');
+            isFlipped = !isFlipped;
+        }
+
+        function nextCard() {
+            if (currentIndex < flashcards.length - 1) {
+                currentIndex++;
+                updateCard();
+            }
+        }
+
+        function prevCard() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateCard();
+            }
+        }
+
+        function shuffleCards() {
+            for (let i = flashcards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [flashcards[i], flashcards[j]] = [flashcards[j], flashcards[i]];
+            }
+            currentIndex = 0;
+            viewedCards.clear();
+            updateCard();
+        }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'ArrowRight') nextCard();
+            if (e.key === 'ArrowLeft') prevCard();
+            if (e.key === ' ') { e.preventDefault(); flip(); }
+        });
+
+        updateCard();
+    </script>
+</body>
+</html>
